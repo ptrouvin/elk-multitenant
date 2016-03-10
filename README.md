@@ -3,12 +3,14 @@ ELK design add-on to obtain real multi-tenancy in cloud ready environment
 
 <p>A way to segregate logs entries inside ELK with OAUTH authentication:</p>
 <p> </p>
+<h2>Genesis</h2>
 <p> ELK: Elasticsearch, Logstash, Kibana, suffers of a lack of real multi-tenancy solution when used in large cloud environment.</p>
 <p>I mean, how to guaranty to a customer that his logs will never be delivered to someone else?</p>
 <p> </p>
 <p>You can not do that with <strong>shield</strong>, the ELK commercial tool. With shield you can add user authentication and define who can access to which fields. So the strength of this solution is based on configuration.</p>
 <p> </p>
 <p>The solution I've though and built, can guaranty by design that logs of a customer will never be accessible by another.</p>
+<h2>Architecture</h2>
 <p>The main idea is to use the elasticsearch index structure to store data per customer, let's say a CID: Customer Id.</p>
 <p> </p>
 <p>When logs entries are treated by logstash, if there is a CID field, then it is used to determine the elasticsearch index to use.</p>
@@ -21,4 +23,10 @@ ELK design add-on to obtain real multi-tenancy in cloud ready environment
 <p><img src="http://www.o4s.fr/images/LaaS-Archi.png" alt="Log As A Service Architecture" width="303" height="306" /> </p>
 <p> </p>
 <p> </p>
-<p> </p>
+<h2>Dependencies</h2>
+This tool relies on :
+<ul>
+<li>ELK</li>
+<li>Apache Kafka as message bus</li>
+<li>python 2.x</li>
+</ul>
