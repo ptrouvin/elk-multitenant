@@ -29,4 +29,14 @@ This tool relies on :
 <li>ELK</li>
 <li>Apache Kafka as message bus</li>
 <li>python 2.x</li>
+<li><a href="https://github.com/mumrah/kafka-python">kafka-python</a> Kafka interface for python</li>
 </ul>
+
+<h2>Universal listener - proxy2kafka.py</h2>
+Inspired from: <a href="https://gist.github.com/majek/1662475">https://gist.github.com/majek/1662475</a>.
+<br>This component is used to grab messages and push them on kafka queue, to let logstash to analyze them.
+<br>proxy2kafka.py can listen on tcp, udp and multiport.
+<br>It interpret nothing, it just pass messages as is to logstash through kafka.
+
+<h2>Ruler - elk-LaaS-API</h2>
+Because the ruler is a bit big stuff, it is a project by itself, published in <a href="git@github.com:ptrouvin/elk-LaaS-API.git">elk-LaaS-API</a>.
