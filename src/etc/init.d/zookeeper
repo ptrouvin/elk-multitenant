@@ -1,0 +1,69 @@
+# Source function library.
+#. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+start() {
+    echo -n $"Starting ZooKeeper Daemon: "
+    /opt/kafka/bin/zookeeper-server-start.sh -daemon /etc/kafka/zookeeper.properties >/dev/null 2>&1
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/zookeeper
+}
+
+stop() {
+    echo -n $"Stopping ZooKeeper Daemon: "
+    pid=`ps ax | grep zookeeper | grep java | cut -d' ' -f2`
+    if [ ! -z "$pid" ]; then
+	kill $pid
+    	RETVAL=$?
+    else
+	RETVAL=1
+    fi
+    echo
+    if [ $RETVAL -eq 0 ]; then
+        rm -f /var/lock/subsys/zookeeper
+    fi
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        ps ax | grep zookeeper | grep java
+        RETVAL=$?
+        ;;
+    restart|force-reload)
+        stop
+	sleep 1
+        start
+        ;;
+    condrestart|try-restart)
+        if [ -f /var/lock/subsys/zookeeper ]; then
+            stop
+            start
+        fi
+        ;;
+    reload)
+        echo -n $"Reloading ZooKeeper Daemon: "
+        if [ -n "`pidfileofproc zookeeper`" ] ; then
+            killproc zookeeper -HUP
+            RETVAL=$?
+        else
+            failure $"Reloading zookeeper"
+            # not running
+            RETVAL=7
+        fi
+        echo
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|force-reload|condrestart|try-restart|reload}"
+        exit 2
+esac
+exit $RETVAL
+

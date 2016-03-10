@@ -1,0 +1,71 @@
+# Source function library.
+#. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+start() {
+    echo -n $"Checking for ZooKeeper"
+    /etc/init.d/zookeeper status || /etc/init.d/zookeeper start
+    sleep 5
+    echo -n $"Starting Kafka Daemon: "
+    /opt/kafka/bin/kafka-server-start.sh -daemon /etc/kafka/server.properties >/dev/null 2>&1
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/kafka
+}
+
+stop() {
+    echo -n $"Stopping Kafka Daemon: "
+    pid=`ps ax | grep kafka | grep java | cut -d' ' -f2`
+    if [ ! -z "$pid" ]; then
+        kill $pid
+        RETVAL=$?
+    else
+        RETVAL=1
+    fi
+    echo
+    if [ $RETVAL -eq 0 ]; then
+        rm -f /var/lock/subsys/kafka
+    fi
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        ps ax | grep kafka.Kafka | grep java
+        RETVAL=$?
+        ;;
+    restart|force-reload)
+        stop
+        start
+        ;;
+    condrestart|try-restart)
+        if [ -f /var/lock/subsys/kafka ]; then
+            stop
+            start
+        fi
+        ;;
+    reload)
+        echo -n $"Reloading Kafka Daemon: "
+        if [ -n "`pidfileofproc kafka`" ] ; then
+            killproc kafka -HUP
+            RETVAL=$?
+        else
+            failure $"Reloading kafka"
+            # not running
+            RETVAL=7
+        fi
+        echo
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|force-reload|condrestart|try-restart|reload}"
+        exit 2
+esac
+exit $RETVAL
+

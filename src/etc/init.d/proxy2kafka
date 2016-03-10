@@ -1,0 +1,70 @@
+# Source function library.
+#. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+start() {
+    echo -n $"Starting Proxy2Kafka Daemon: "
+    /usr/local/bin/proxy2kafka.py --daemon >/dev/null 2>&1
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/proxy2kafka
+}
+
+stop() {
+    echo -n $"Stopping Proxy2Kafka Daemon: "
+    pid=`ps ax | grep proxy2kafka | grep python | awk '{print $1;}'`
+    if [ ! -z "$pid" ]; then
+	kill $pid
+    	RETVAL=$?
+    else
+	RETVAL=1
+    fi
+    echo
+    if [ $RETVAL -eq 0 ]; then
+        rm -f /var/lock/subsys/proxy2kafka
+    fi
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        ps ax | grep proxy2kafka | grep python
+        RETVAL=$?
+        ;;
+    restart|force-reload)
+        stop
+	sleep 1
+        start
+        ;;
+    condrestart|try-restart)
+        if [ -f /var/lock/subsys/proxy2kafka ]; then
+            stop
+            start
+        fi
+        ;;
+    reload)
+        echo -n $"Reloading Proxy2Kafka Daemon: "
+        pid=`ps ax | grep proxy2kafka | grep python | cut -d' ' -f2`
+        if [ -z "$pid" ] ; then
+            kill $pid -HUP
+            RETVAL=$?
+        else
+            failure $"Reloading proxy2kafka"
+            # not running
+            RETVAL=7
+        fi
+        echo
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|force-reload|condrestart|try-restart|reload}"
+        exit 2
+esac
+exit $RETVAL
+
